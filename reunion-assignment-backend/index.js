@@ -9,7 +9,7 @@ const cors = require("cors");
 const app = express(); // Create an Express application
 app.use(
     cors({
-        origin: "http://localhost:3000", // Allow requests from this origin
+        origin: process.env.ORIGIN, // Allow requests from this origin
         methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
         credentials: true, // Allow credentials (e.g., cookies)
     })
