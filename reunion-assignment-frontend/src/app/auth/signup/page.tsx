@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
+import useAuthRedirect from "@/hooks/useAuthRedirect";
 
 interface SignupFormInputs {
     email: string
@@ -23,6 +24,7 @@ interface SignupFormInputs {
 }
 
 const SignupPage = () => {
+    useAuthRedirect();
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<SignupFormInputs>()
     const router = useRouter()
     const { toast } = useToast();

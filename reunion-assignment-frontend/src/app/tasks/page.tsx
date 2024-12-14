@@ -13,8 +13,10 @@ import { AddTaskDialog } from "@/components/modals/AddTaskDialog";
 import { EditTaskDialog } from "@/components/modals/EditTaskDialog";
 import { toast } from "@/hooks/use-toast";
 import { Edit2Icon, Trash2Icon } from 'lucide-react';
+import useAuthRedirect from "@/hooks/useAuthRedirect";
 
 export default function TasksPage() {
+    useAuthRedirect();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [priorityFilter, setPriorityFilter] = useState<string>("all");
     const [statusFilter, setStatusFilter] = useState<string>("all");
