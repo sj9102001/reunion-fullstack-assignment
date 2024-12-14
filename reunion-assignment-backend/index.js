@@ -7,13 +7,21 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
 const app = express(); // Create an Express application
-app.use(
-    cors({
-        origin: process.env.ORIGIN, // Allow requests from this origin
-        methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
-        credentials: true, // Allow credentials (e.g., cookies)
-    })
-);
+
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Credentials", "true"); // Allow credentials
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS"); // Allow HTTP methods
+    res.header(
+        "Access-Control-Allow-Headers",
+        "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    );
+    if (req.method === "OPTIONS") {
+        return res.status(200).end(); // Preflight request handling
+    }
+    next();
+});
+
 
 app.use(express.json()); // Middleware to parse JSON request bodies
 app.use(cookieParser());

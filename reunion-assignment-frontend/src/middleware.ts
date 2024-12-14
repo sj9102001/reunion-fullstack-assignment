@@ -9,7 +9,6 @@ export async function middleware(request: NextRequest) {
         headers: {
             Cookie: request.headers.get("cookie") || "", // Pass cookies from the request
         },
-        credentials: "include"
     });
 
     const isLoggedIn = response.ok;
