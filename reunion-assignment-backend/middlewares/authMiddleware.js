@@ -5,7 +5,9 @@ const User = require("../models/userModel");
 const protect = async (req, res, next) => {
     try {
         // Check for the token in the cookies
+        console.log("REQ COOKIES", req.cookies);
         const token = req.cookies.token;
+        console.log("TOKEN", token);
         if (!token) {
             return res.status(401).json({ message: "Unauthorized: Token missing." });
         }
