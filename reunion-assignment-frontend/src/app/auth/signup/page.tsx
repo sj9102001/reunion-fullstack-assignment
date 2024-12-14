@@ -14,28 +14,52 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/hooks/use-toast";
 
 interface SignupFormInputs {
     email: string
     password: string
     confirmPassword: string,
-    username: string
 }
 
 const SignupPage = () => {
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<SignupFormInputs>()
     const router = useRouter()
-
+    const { toast } = useToast();
     const onSubmit: SubmitHandler<SignupFormInputs> = async (data) => {
-        const { email, password, username, confirmPassword } = data
+        const { email, password, confirmPassword } = data
 
         if (password !== confirmPassword) {
+            toast({
+                title: "Password and Confirm password should match",
+                variant: "destructive"
+            })
             return;
         }
 
         try {
-            // Signup
+            const res = await fetch("http://localhost:8080/users/signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            })
+            const data = await res.json();
+            if (res.ok) {
+                toast({
+                    title: "Signed up successfully",
+                    description: "Please log in",
+                    variant: "default"
+                })
+                router.push("/auth/login")
+            } else {
+                throw new Error(data.message);
+            }
         } catch (error: any) {
+            toast({
+                title: "Signup Failed",
+                description: "Please try again",
+                variant: "destructive"
+            })
         }
     }
 
@@ -56,15 +80,6 @@ const SignupPage = () => {
                                 id="email"
                                 type="email"
                                 {...register("email", { required: "Email is required" })}
-                            />
-                            {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="username">Username</Label>
-                            <Input
-                                id="username"
-                                type="text"
-                                {...register("username", { required: "Username is required" })}
                             />
                             {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
                         </div>

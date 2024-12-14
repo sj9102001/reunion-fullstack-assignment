@@ -1,76 +1,73 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { getTasks, updateTask } from "@/lib/data"
-import { Task } from "@/lib/types"
+import { useState, useEffect } from "react";
+import { getTasks, updateTask } from "@/lib/api";
+import { Task } from "@/lib/types";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { AddTaskDialog } from "@/components/modals/AddTaskDialog";
 
 export default function TasksPage() {
-    const [tasks, setTasks] = useState<Task[]>([])
-    const [priorityFilter, setPriorityFilter] = useState<string>("all")
-    const [statusFilter, setStatusFilter] = useState<string>("all")
-    const [sortBy, setSortBy] = useState<string>("startTime")
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [priorityFilter, setPriorityFilter] = useState<string>("all");
+    const [statusFilter, setStatusFilter] = useState<string>("all");
+    const [sortBy, setSortBy] = useState<string>("startTime");
 
-    // Fetch tasks after the component mounts
     useEffect(() => {
-        const fetchTasks = async () => {
-            const fetchedTasks = await getTasks()
-            setTasks(fetchedTasks)
+        const fetchData = async () => {
+            const fetchedTasks = await getTasks();
+            setTasks(fetchedTasks.tasks);
+        };
+
+        fetchData();
+    }, []);
+    const filteredTasks = tasks.filter((task) => priorityFilter === "all" || task.priority.toString() === priorityFilter).filter((task) => statusFilter === "all" || task.status === statusFilter).sort((a, b) => {
+        if (sortBy === "startTime") {
+            return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
         }
-        fetchTasks()
-    }, [])
+        return new Date(a.endTime).getTime() - new Date(b.endTime).getTime();
+    });
 
-    const filteredTasks = tasks
-        .filter(task => priorityFilter === "all" || task.priority.toString() === priorityFilter)
-        .filter(task => statusFilter === "all" || task.status === statusFilter)
-        .sort((a, b) => {
-            if (sortBy === "startTime") {
-                return new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-            } else {
-                return new Date(a.endTime).getTime() - new Date(b.endTime).getTime()
-            }
-        })
-
-    const handleStatusChange = (taskId: number, newStatus: 'pending' | 'finished') => {
-        const updatedTasks = tasks.map(task => {
-            if (task.id === taskId) {
-                const updatedTask = { ...task, status: newStatus }
-                if (newStatus === 'finished') {
-                    updatedTask.endTime = new Date().toISOString()
-                }
-                updateTask(updatedTask)
-                return updatedTask
-            }
-            return task
-        })
-        setTasks(updatedTasks)
-    }
+    const handleStatusChange = async (taskId: string, newStatus: "pending" | "finished") => {
+        try {
+            const updatedTask = await updateTask(taskId, newStatus);
+            setTasks((prevTasks) =>
+                prevTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
+            );
+        } catch (error) {
+            console.error("Failed to update task:", error);
+        }
+    };
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-3xl font-bold mb-6">Tasks</h1>
-            <div className="flex flex-wrap gap-4 mb-4">
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold">Tasks</h1>
+                <AddTaskDialog />
+            </div>
+            <div className="mb-6 flex flex-wrap gap-4">
                 <div>
-                    <Label htmlFor="priority-filter">Filter by Priority</Label>
+                    <Label>Priority</Label>
                     <Select onValueChange={setPriorityFilter} defaultValue="all">
-                        <SelectTrigger id="priority-filter">
+                        <SelectTrigger>
                             <SelectValue placeholder="Select priority" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All</SelectItem>
-                            {[1, 2, 3, 4, 5].map(priority => (
-                                <SelectItem key={priority} value={priority.toString()}>{priority}</SelectItem>
+                            {[1, 2, 3, 4, 5].map((p) => (
+                                <SelectItem key={p} value={p.toString()}>
+                                    Priority {p}
+                                </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
                 </div>
                 <div>
-                    <Label htmlFor="status-filter">Filter by Status</Label>
+                    <Label>Status</Label>
                     <Select onValueChange={setStatusFilter} defaultValue="all">
-                        <SelectTrigger id="status-filter">
+                        <SelectTrigger>
                             <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -81,9 +78,9 @@ export default function TasksPage() {
                     </Select>
                 </div>
                 <div>
-                    <Label htmlFor="sort-by">Sort by</Label>
+                    <Label>Sort By</Label>
                     <Select onValueChange={setSortBy} defaultValue="startTime">
-                        <SelectTrigger id="sort-by">
+                        <SelectTrigger>
                             <SelectValue placeholder="Sort by" />
                         </SelectTrigger>
                         <SelectContent>
@@ -97,15 +94,15 @@ export default function TasksPage() {
                 <TableHeader>
                     <TableRow>
                         <TableHead>Title</TableHead>
-                        <TableHead>Start Time</TableHead>
-                        <TableHead>End Time</TableHead>
+                        <TableHead>Start</TableHead>
+                        <TableHead>End</TableHead>
                         <TableHead>Priority</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {filteredTasks.map(task => (
+                    {filteredTasks.map((task) => (
                         <TableRow key={task.id}>
                             <TableCell>{task.title}</TableCell>
                             <TableCell>{new Date(task.startTime).toLocaleString()}</TableCell>
@@ -115,9 +112,11 @@ export default function TasksPage() {
                             <TableCell>
                                 <Button
                                     variant="outline"
-                                    onClick={() => handleStatusChange(task.id, task.status === 'pending' ? 'finished' : 'pending')}
+                                    onClick={() =>
+                                        handleStatusChange(task.id.toString(), task.status === "pending" ? "finished" : "pending")
+                                    }
                                 >
-                                    {task.status === 'pending' ? 'Mark Complete' : 'Mark Pending'}
+                                    {task.status === "pending" ? "Complete" : "Revert"}
                                 </Button>
                             </TableCell>
                         </TableRow>
@@ -125,5 +124,5 @@ export default function TasksPage() {
                 </TableBody>
             </Table>
         </div>
-    )
+    );
 }

@@ -2,9 +2,10 @@
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { cn } from "@/lib/utils"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { Toaster } from "@/components/ui/toaster";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { usePathname } from "next/navigation"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -49,6 +50,7 @@ export default function RootLayout({
             </div>
           </header>
           <main className="flex-1">{children}</main>
+          <Toaster />
         </div>
       </body>
     </html>

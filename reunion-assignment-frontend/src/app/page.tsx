@@ -1,56 +1,75 @@
 "use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { getTasks } from "@/lib/data"
+import { getTasks } from "@/lib/api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { useEffect, useState } from "react";
+import { Task } from "@/lib/types";
 
 export default function DashboardPage() {
-  const tasks = getTasks()
-  const totalTasks = tasks.length
-  const completedTasks = tasks.filter(task => task.status === 'finished').length
-  const pendingTasks = totalTasks - completedTasks
-  const completedPercentage = (completedTasks / totalTasks) * 100
+  // const tasks = await getTasks();
+
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const data = await getTasks();
+      setTasks(data.tasks);
+    }
+    fetchTasks();
+  }, []);
+
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter((task) => task.status === "finished").length;
+  const pendingTasks = totalTasks - completedTasks;
+  const completedPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
   const calculateTimeStats = () => {
-    const now = new Date()
-    const stats = { 1: { elapsed: 0, remaining: 0 }, 2: { elapsed: 0, remaining: 0 }, 3: { elapsed: 0, remaining: 0 }, 4: { elapsed: 0, remaining: 0 }, 5: { elapsed: 0, remaining: 0 } }
-    let totalActualTime = 0
-    let completedCount = 0
+    const now = new Date();
+    const stats = {
+      1: { elapsed: 0, remaining: 0 },
+      2: { elapsed: 0, remaining: 0 },
+      3: { elapsed: 0, remaining: 0 },
+      4: { elapsed: 0, remaining: 0 },
+      5: { elapsed: 0, remaining: 0 },
+    };
+    let totalActualTime = 0;
+    let completedCount = 0;
 
-    tasks.forEach(task => {
-      const start = new Date(task.startTime)
-      const end = new Date(task.endTime)
+    tasks.forEach((task) => {
+      const start = new Date(task.startTime);
+      const end = new Date(task.endTime);
 
-      if (task.status === 'pending') {
-        stats[task.priority].elapsed += (now.getTime() - start.getTime()) / 3600000 // Convert to hours
-        stats[task.priority].remaining += (end.getTime() - now.getTime()) / 3600000 // Convert to hours
+      if (task.status === "pending") {
+        stats[task.priority].elapsed += (now.getTime() - start.getTime()) / 3600000;
+        stats[task.priority].remaining += (end.getTime() - now.getTime()) / 3600000;
       } else {
-        totalActualTime += (end.getTime() - start.getTime()) / 3600000 // Convert to hours
-        completedCount++
+        totalActualTime += (end.getTime() - start.getTime()) / 3600000;
+        completedCount++;
       }
-    })
+    });
 
-    const averageCompletionTime = completedCount > 0 ? totalActualTime / completedCount : 0
+    const averageCompletionTime = completedCount > 0 ? totalActualTime / completedCount : 0;
 
-    return { stats, averageCompletionTime }
-  }
+    return { stats, averageCompletionTime };
+  };
 
-  const { stats, averageCompletionTime } = calculateTimeStats()
+  const { stats, averageCompletionTime } = calculateTimeStats();
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
+          <CardHeader>
+            <CardTitle>Total Tasks</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalTasks}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Task Completion</CardTitle>
+          <CardHeader>
+            <CardTitle>Task Completion</CardTitle>
           </CardHeader>
           <CardContent>
             <Progress value={completedPercentage} className="mb-2" />
@@ -60,21 +79,23 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Time Stats by Priority</CardTitle>
+          <CardHeader>
+            <CardTitle>Time Stats by Priority</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent>
             {Object.entries(stats).map(([priority, { elapsed, remaining }]) => (
               <div key={priority} className="flex justify-between text-xs">
                 <span>Priority {priority}:</span>
-                <span>{elapsed.toFixed(2)}h elapsed, {remaining.toFixed(2)}h remaining</span>
+                <span>
+                  {elapsed.toFixed(2)}h elapsed, {remaining.toFixed(2)}h remaining
+                </span>
               </div>
             ))}
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Completion Time</CardTitle>
+          <CardHeader>
+            <CardTitle>Avg. Completion Time</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{averageCompletionTime.toFixed(2)}h</div>
@@ -82,5 +103,5 @@ export default function DashboardPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

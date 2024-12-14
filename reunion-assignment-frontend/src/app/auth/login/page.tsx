@@ -3,8 +3,6 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import "react-toastify/dist/ReactToastify.css";
-
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 interface LoginFormValues {
     email: string;
@@ -25,6 +24,7 @@ interface LoginFormValues {
 }
 
 const LoginPage = () => {
+    const { toast } = useToast()
     const {
         register,
         handleSubmit,
@@ -33,8 +33,25 @@ const LoginPage = () => {
     const router = useRouter();
     const onSubmit = async (data: LoginFormValues) => {
         try {
-            // Signin
-        } catch (error: any) {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/signin`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+                credentials: "include",
+            });
+            if (response.status === 200) {
+                router.replace("/");
+            } else {
+                throw Error();
+            }
+        } catch (error) {
+            toast({
+                title: "Login Failed",
+                description: "Please try again",
+                variant: "destructive"
+            })
         }
     };
 
