@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
@@ -41,8 +40,8 @@ const LoginPage = () => {
                 body: JSON.stringify(data),
                 credentials: "include",
             });
-            if (response.status === 200) {
-                router.replace("/");
+            if (response.ok) {
+                router.push("/");
             } else {
                 throw Error();
             }

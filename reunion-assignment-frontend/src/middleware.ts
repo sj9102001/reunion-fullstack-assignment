@@ -3,13 +3,13 @@ import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
     const verifyAuthApi = `${process.env.NEXT_PUBLIC_API_URL}/users/verify`;
-
     // Call the verifyAuth API
     const response = await fetch(verifyAuthApi, {
         method: "GET",
         headers: {
             Cookie: request.headers.get("cookie") || "", // Pass cookies from the request
         },
+        credentials: "include"
     });
 
     const isLoggedIn = response.ok;
