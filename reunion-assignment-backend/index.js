@@ -8,17 +8,12 @@ const cors = require("cors");
 
 const app = express(); // Create an Express application
 
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Credentials", "true"); // Allow credentials
-    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS"); // Allow HTTP methods
-    res.header(
-        "Access-Control-Allow-Headers",
-        "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-    );
-    if (req.method === "OPTIONS") {
-        return res.status(200).end(); // Preflight request handling
-    }
+app.use(cors({ credentials: true, origin: process.env.ORIGIN }));
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", process.env.ORIGIN);
+    res.header("Access-Control-Allow-Credentials", true);
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json');
     next();
 });
 
