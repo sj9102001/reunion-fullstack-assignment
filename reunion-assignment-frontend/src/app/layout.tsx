@@ -19,7 +19,7 @@ export default function RootLayout({
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("http://localhost:8080/users/logout", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/logout`, {
         method: "POST",
         credentials: "include", // Ensure cookies are sent with the request
       });

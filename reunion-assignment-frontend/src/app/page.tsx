@@ -22,7 +22,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch("http://localhost:8080/tasks/stats", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/stats`, {
           credentials: "include"
         }); // Update to your stats API endpoint
         const data = await response.json();

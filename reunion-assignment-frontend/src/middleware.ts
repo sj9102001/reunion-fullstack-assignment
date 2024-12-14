@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-    const verifyAuthApi = `http://localhost:8080/users/verify`;
+    const verifyAuthApi = `${process.env.NEXT_PUBLIC_API_URL}/users/verify`;
 
     // Call the verifyAuth API
     const response = await fetch(verifyAuthApi, {
