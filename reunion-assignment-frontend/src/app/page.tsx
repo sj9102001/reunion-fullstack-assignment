@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import useAuthRedirect from "@/hooks/useAuthRedirect";
 type TaskStats = {
   priority: number;
   total: number;
@@ -13,7 +12,6 @@ type TaskStats = {
 };
 
 export default function DashboardPage() {
-  useAuthRedirect();
   const [stats, setStats] = useState<TaskStats[]>([]);
   const [totalTasks, setTotalTasks] = useState(0);
   const [completedTasks, setCompletedTasks] = useState(0);

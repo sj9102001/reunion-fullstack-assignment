@@ -16,7 +16,6 @@ import { Label } from "@/components/ui/label";
 
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import useAuthRedirect from "@/hooks/useAuthRedirect";
 
 interface LoginFormValues {
     email: string;
@@ -24,7 +23,6 @@ interface LoginFormValues {
 }
 
 const LoginPage = () => {
-    useAuthRedirect();
     const { toast } = useToast()
     const {
         register,
