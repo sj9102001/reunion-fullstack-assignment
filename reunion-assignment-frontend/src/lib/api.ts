@@ -1,18 +1,16 @@
 import { Task } from "./types";
 
-export const getTasks = async (): Promise<{ message: string, tasks: Task[] }> => {
+export const getTasks = async (): Promise<Task[]> => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks`, {
         cache: "no-store", // Ensure fresh data on every request
         credentials: "include",
     });
 
     if (!res.ok) {
-        console.log(res);
-
         throw new Error("Failed to fetch tasks");
     }
-
-    return res.json();
+    const data = await res.json();
+    return data.tasks;
 };
 
 export const updateTask = async (taskId: string, newStatus: "pending" | "finished"): Promise<Task> => {
@@ -32,8 +30,10 @@ export const updateTask = async (taskId: string, newStatus: "pending" | "finishe
 };
 
 export const deleteTask = async (taskId: string): Promise<Task> => {
+    console.log(taskId);
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${taskId}`, {
-        method: "DELETE"
+        method: "DELETE",
+        credentials: "include"
     });
 
     if (!res.ok) {

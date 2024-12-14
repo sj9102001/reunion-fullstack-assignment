@@ -1,30 +1,23 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
-import { useEffect, useState } from "react"
 import { useForm, Controller } from "react-hook-form"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DateTimePicker } from "@/components/ui/date-time-picker"
-import { toast } from "@/hooks/use-toast"
-import { Task } from "@/lib/types";
+import { Task } from "@/lib/types"
+import { useEffect, useState } from "react"
 
-interface AddTaskDialogProps {
-    onAddTask: (task: Task) => void;
+interface EditTaskDialogProps {
+    task: Task;
+    isOpen: boolean;
+    onClose: () => void;
+    onUpdate: (taskId: string, updatedTask: Partial<Task>) => void;
 }
 
-type FormData = {
-    title: string
-    startTime: Date
-    endTime: Date
-    priority: 1 | 2 | 3 | 4 | 5
-}
-
-export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
-    const [open, setOpen] = useState(false)
+export function EditTaskDialog({ task, isOpen, onClose, onUpdate }: EditTaskDialogProps) {
     const [minDate, setMinDate] = useState<Date>(new Date())
 
     useEffect(() => {
@@ -33,38 +26,26 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
         }, 60000)
         return () => clearInterval(interval)
     }, [])
-    const { control, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
+    const { control, handleSubmit } = useForm<Task>({
         defaultValues: {
-            title: "",
-            startTime: new Date(),
-            endTime: new Date(),
-            priority: 3,
+            title: task.title,
+            startTime: new Date(task.startTime),
+            endTime: new Date(task.endTime),
+            priority: task.priority,
+            status: task.status,
         },
     })
 
-    const onSubmit = (data: FormData) => {
-        const newTask: any = {
-            ...data,
-            status: "pending",
-            priority: data.priority
-        };
-        onAddTask(newTask);
-        toast({
-            title: "Task added",
-            description: `New task "${data.title}" has been added.`,
-        })
-        setOpen(false)
-        reset()
+    const onSubmit = (data: Task) => {
+        onUpdate(task._id, data);
+        onClose();
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button>Add New Task</Button>
-            </DialogTrigger>
+        <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-semibold">Add New Task</DialogTitle>
+                    <DialogTitle className="text-xl font-semibold">Edit Task</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
                     <div className="space-y-2">
@@ -77,9 +58,6 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
                                 <Input id="title" {...field} />
                             )}
                         />
-                        {errors.title && (
-                            <p className="text-sm text-red-500">{errors.title.message}</p>
-                        )}
                     </div>
 
                     <div className="space-y-2">
@@ -136,7 +114,30 @@ export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
                         />
                     </div>
 
-                    <Button type="submit" className="w-full">Add Task</Button>
+                    <div className="space-y-2">
+                        <Label htmlFor="status">Status</Label>
+                        <Controller
+                            name="status"
+                            control={control}
+                            rules={{ required: "Status is required" }}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="pending">Pending</SelectItem>
+                                        <SelectItem value="finished">Finished</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                    </div>
+
+                    <div className="flex justify-end space-x-2">
+                        <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+                        <Button type="submit">Update</Button>
+                    </div>
                 </form>
             </DialogContent>
         </Dialog>

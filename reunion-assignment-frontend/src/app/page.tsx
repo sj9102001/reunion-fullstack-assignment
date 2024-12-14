@@ -1,59 +1,43 @@
 "use client";
-import { getTasks } from "@/lib/api";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { useEffect, useState } from "react";
-import { Task } from "@/lib/types";
+type TaskStats = {
+  priority: number;
+  total: number;
+  pending: number;
+  finished: number;
+  averageCompletionTime: number; // Ensure this is typed as a number
+  overallAverageCompletionTime: number;
+};
 
 export default function DashboardPage() {
-  // const tasks = await getTasks();
-
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [stats, setStats] = useState<TaskStats[]>([]);
+  const [totalTasks, setTotalTasks] = useState(0);
+  const [completedTasks, setCompletedTasks] = useState(0);
+  const [pendingTasks, setPendingTasks] = useState(0);
+  const [completedPercentage, setCompletedPercentage] = useState(0);
+  const [overallAverageCompletionTime, setOverallAverageCompletionTime] = useState(0);
 
   useEffect(() => {
-    const fetchTasks = async () => {
-      const data = await getTasks();
-      setTasks(data.tasks);
-    }
-    fetchTasks();
-  }, []);
-
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter((task) => task.status === "finished").length;
-  const pendingTasks = totalTasks - completedTasks;
-  const completedPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-
-  const calculateTimeStats = () => {
-    const now = new Date();
-    const stats = {
-      1: { elapsed: 0, remaining: 0 },
-      2: { elapsed: 0, remaining: 0 },
-      3: { elapsed: 0, remaining: 0 },
-      4: { elapsed: 0, remaining: 0 },
-      5: { elapsed: 0, remaining: 0 },
-    };
-    let totalActualTime = 0;
-    let completedCount = 0;
-
-    tasks.forEach((task) => {
-      const start = new Date(task.startTime);
-      const end = new Date(task.endTime);
-
-      if (task.status === "pending") {
-        stats[task.priority].elapsed += (now.getTime() - start.getTime()) / 3600000;
-        stats[task.priority].remaining += (end.getTime() - now.getTime()) / 3600000;
-      } else {
-        totalActualTime += (end.getTime() - start.getTime()) / 3600000;
-        completedCount++;
+    const fetchStats = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/tasks/stats", {
+          credentials: "include"
+        }); // Update to your stats API endpoint
+        const data = await response.json();
+        setStats(data.stats);
+        setTotalTasks(data.totalTasks);
+        setCompletedTasks(data.completedTasks);
+        setPendingTasks(data.pendingTasks);
+        setCompletedPercentage(data.completedPercentage);
+        setOverallAverageCompletionTime(data.overallAverageCompletionTime);
+      } catch (error) {
+        console.error("Error fetching stats:", error);
       }
-    });
-
-    const averageCompletionTime = completedCount > 0 ? totalActualTime / completedCount : 0;
-
-    return { stats, averageCompletionTime };
-  };
-
-  const { stats, averageCompletionTime } = calculateTimeStats();
+    };
+    fetchStats();
+  }, []);
 
   return (
     <div className="container mx-auto p-4">
@@ -83,23 +67,24 @@ export default function DashboardPage() {
             <CardTitle>Time Stats by Priority</CardTitle>
           </CardHeader>
           <CardContent>
-            {Object.entries(stats).map(([priority, { elapsed, remaining }]) => (
-              <div key={priority} className="flex justify-between text-xs">
-                <span>Priority {priority}:</span>
-                <span>
-                  {elapsed.toFixed(2)}h elapsed, {remaining.toFixed(2)}h remaining
-                </span>
+            {stats.map(({ priority, total, pending, finished, averageCompletionTime }) => (
+              <div key={priority} className="text-xs mb-2">
+                <div>Priority {priority}:</div>
+                <div>Total: {total}, Pending: {pending}, Finished: {finished}</div>
+                <div>Avg. Completion Time: {averageCompletionTime.toFixed(2)}h</div>
               </div>
             ))}
           </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Avg. Completion Time</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{averageCompletionTime.toFixed(2)}h</div>
-          </CardContent>
+          <Card>
+            <CardHeader>
+              <CardTitle>Overall Avg. Completion Time</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {overallAverageCompletionTime.toFixed(2)}h
+              </div>
+            </CardContent>
+          </Card>
         </Card>
       </div>
     </div>

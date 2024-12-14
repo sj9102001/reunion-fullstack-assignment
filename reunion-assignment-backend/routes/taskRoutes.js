@@ -44,6 +44,6 @@ router.put(
 router.get("/stats", protect, getStats);
 
 // DELETE /api/tasks/:id - Delete a specific task (Protected route)
-router.delete("/:id", protect, deleteTask);
+router.delete("/:taskId", protect, deleteTask);
 
 module.exports = router;

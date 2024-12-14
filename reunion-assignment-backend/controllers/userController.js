@@ -7,6 +7,19 @@ const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
+// controllers/authController.js
+const logout = (req, res) => {
+    try {
+        // Clear the JWT cookie
+        res.clearCookie("token");
+        return res.status(200).json({ message: "Logout successful" },);
+    } catch (error) {
+        console.error("Error during logout:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+
 // Sign Up (Register a new user)
 const signup = async (req, res) => {
     try {
@@ -37,6 +50,7 @@ const signup = async (req, res) => {
         res.cookie("token", token, {
             httpOnly: true,
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            sameSite: "none"
         });
 
         res.status(201).json({ message: "User registered successfully." });
@@ -69,8 +83,6 @@ const signin = async (req, res) => {
         // Set the token in an HTTP-only secure cookie
         res.cookie("token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production", // Secure in production
-            sameSite: "strict",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
@@ -81,4 +93,29 @@ const signin = async (req, res) => {
     }
 };
 
-module.exports = { signup, signin };
+const verifyAuth = async (req, res) => {
+    try {
+        // Retrieve the token from the HTTP-only cookie
+        const token = req.cookies.token;
+        if (!token) {
+            return res.status(401).json({ message: "Unauthorized: No token provided." });
+        }
+
+        // Verify the token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (!decoded || !decoded.id) {
+            return res.status(401).json({ message: "Unauthorized: Invalid token." });
+        }
+
+        // If the token is valid, respond with success
+        res.status(200).json({ message: "Authorized", userId: decoded.id });
+    } catch (error) {
+        console.error(error);
+        if (error.name === "TokenExpiredError") {
+            return res.status(401).json({ message: "Unauthorized: Token expired." });
+        }
+        res.status(401).json({ message: "Unauthorized: Authentication failed." });
+    }
+};
+
+module.exports = { signup, signin, logout, verifyAuth };

@@ -18,12 +18,6 @@ app.use(
 app.use(express.json()); // Middleware to parse JSON request bodies
 app.use(cookieParser());
 
-app.use((req, res, next) => {
-    console.log("Incoming Cookies:", req.cookies);
-    console.log("Incoming Headers:", req.headers);
-    next();
-});
-
 // Mount routes
 app.use("/tasks", taskRoutes); // All task-related endpoints
 app.use("/users", userRoutes); // All user-related endpoints

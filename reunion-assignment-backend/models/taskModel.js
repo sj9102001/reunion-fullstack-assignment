@@ -18,6 +18,9 @@ const taskSchema = new mongoose.Schema({
         type: Date,
         required: true,
     },
+    completedAt: {
+        type: Date,
+    },
     priority: {
         type: Number,
         min: 1,

@@ -12,14 +12,15 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
-import { Calendar1 } from "lucide-react"
+import { CalendarIcon } from "lucide-react"
 
 interface DateTimePickerProps {
     value?: Date
     onChange?: (date: Date | undefined) => void
+    minDate?: Date
 }
 
-export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
+export function DateTimePicker({ value, onChange, minDate }: DateTimePickerProps) {
     const [selectedDateTime, setSelectedDateTime] = React.useState<Date | undefined>(value)
 
     const handleDateSelect = (date: Date | undefined) => {
@@ -42,13 +43,18 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
             const newDateTime = new Date(selectedDateTime)
             newDateTime.setHours(hours)
             newDateTime.setMinutes(minutes)
+            if (minDate && newDateTime < minDate) {
+                newDateTime.setDate(minDate.getDate())
+                newDateTime.setMonth(minDate.getMonth())
+                newDateTime.setFullYear(minDate.getFullYear())
+            }
             setSelectedDateTime(newDateTime)
             onChange?.(newDateTime)
         }
     }
 
     return (
-        <Popover >
+        <Popover>
             <PopoverTrigger asChild>
                 <Button
                     variant={"outline"}
@@ -57,7 +63,7 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
                         !selectedDateTime && "text-muted-foreground"
                     )}
                 >
-                    <Calendar1 className="mr-2 h-4 w-4" />
+                    <CalendarIcon className="mr-2 h-4 w-4" />
                     {selectedDateTime ? format(selectedDateTime, "PPP HH:mm") : <span>Pick a date</span>}
                 </Button>
             </PopoverTrigger>
@@ -67,6 +73,7 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
                     selected={selectedDateTime}
                     onSelect={handleDateSelect}
                     initialFocus
+                    disabled={(date) => minDate ? date < minDate : false}
                 />
                 <div className="p-3 border-t">
                     <Input
